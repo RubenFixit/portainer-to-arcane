@@ -28,7 +28,7 @@ curl -fsSL https://rfix.me/p2a | bash
 Download and inspect the launcher, then run it with Bash on your Docker host:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/RubenFixit/portainer-to-arcane/main/launch.sh -o launch.sh
+curl -fsSL https://rfix.me/p2a -o launch.sh
 less launch.sh
 bash launch.sh --exclude rustdesk
 ```
@@ -59,7 +59,13 @@ After inspection, a pipe-to-Bash invocation is also supported:
 curl -fsSL https://rfix.me/p2a | bash -s -- --all --exclude rustdesk
 ```
 
-The short URL `https://rfix.me/p2a` redirects to the [raw launcher on GitHub](https://raw.githubusercontent.com/RubenFixit/portainer-to-arcane/main/launch.sh). It follows the current `main` branch. The full URL in the download-and-inspect example works independently of the shortener. The short-URL interactive source picker and existing-export preparation flow have been exercised on the author's live Docker VM; the new-export token flow still needs a live trial. The launcher currently uses Portrieve's `latest` image and migration image `0.2.0`; `P2A_IMAGE` can override the latter.
+If the short URL is unavailable, download directly from GitHub, then inspect and run as above:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/RubenFixit/portainer-to-arcane/main/launch.sh -o launch.sh
+```
+
+The short URL `https://rfix.me/p2a` redirects to the [raw launcher on GitHub](https://raw.githubusercontent.com/RubenFixit/portainer-to-arcane/main/launch.sh). It follows the current `main` branch. The full URL works independently of the shortener. The short-URL interactive source picker and existing-export preparation flow have been exercised on the author's live Docker VM; the new-export token flow still needs a live trial. The launcher currently uses Portrieve's `latest` image and migration image `0.2.0`; `P2A_IMAGE` can override the latter.
 
 ### Direct container usage
 
