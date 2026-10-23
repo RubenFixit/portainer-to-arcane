@@ -1,0 +1,6 @@
+.git
+.env
+exports
+portainer-export
+output
+__pycache__
