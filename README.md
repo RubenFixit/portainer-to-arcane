@@ -17,7 +17,20 @@ Do not point Portrieve's synchronized export output at a live Arcane projects di
 
 ## Docker usage
 
-Clone this repository and build locally (no prebuilt image is published yet):
+Use the published image `ghcr.io/rubenfixit/portainer-to-arcane:0.1.0` (Linux AMD64 and ARM64). Pin a version for reproducible use; `latest` follows the most recently published stable release.
+
+Select one or more stacks. Change `local-agent-4` to your exported endpoint directory and the project names to your stacks:
+
+```bash
+docker run --rm --user "$(id -u):$(id -g)" \
+  -v "$HOME/portainer-export/local-agent-4:/exports:ro" \
+  -v /opt/docker:/projects \
+  ghcr.io/rubenfixit/portainer-to-arcane:0.1.0 \
+  --source /exports --destination /projects \
+  --project nextcloud --project media
+```
+
+To build locally instead:
 
 ```bash
 git clone https://github.com/RubenFixit/portainer-to-arcane.git
@@ -25,7 +38,9 @@ cd portainer-to-arcane
 docker build -t portainer-to-arcane .
 ```
 
-Select one or more stacks. Change `local-agent-4` to your exported endpoint directory and the project names to your stacks:
+Then substitute `portainer-to-arcane` for the GHCR image in the command above.
+
+## Local build example
 
 ```bash
 docker run --rm --user "$(id -u):$(id -g)" \
@@ -84,3 +99,7 @@ Arcane must have the host projects folder mounted and its Projects Directory con
 Early development. The original manual workflow worked for the author's standalone Docker homelab. This packaged utility has synthetic tests; it has not yet been validated against a live Arcane deployment. Git connection migration and detection, Swarm migration, multi-file exports and data migration are outside its scope. Warnings are advisory, not a complete Compose analysis.
 
 Portrieve remains a separate dependency; its code is not bundled. This project is independent of Portainer, Arcane and Portrieve.
+
+## Publishing releases
+
+The Publish container workflow runs tests and builds Linux AMD64 and ARM64 images when a stable version tag such as `v0.1.0` is pushed. It publishes the corresponding version and `latest` to GHCR using the repository's built-in GitHub Actions token. Publishing rights are limited to that job. Maintainers must verify that the GHCR package visibility is public after its initial publication.
