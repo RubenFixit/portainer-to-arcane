@@ -4,7 +4,7 @@ Prepare Portainer stacks exported by [Portrieve](https://github.com/nopoz/portri
 
 This initial utility copies selected Compose definitions and environment variables. It does not deploy, stop, delete, or update containers; move application data; or connect to either management API. No Docker socket or API credentials are needed by this image.
 
-**Git-backed stacks are not fully migrated.** The tool copies exported files only; it does not transfer a stack's repository connection, branch, credentials or Git deployment settings. It does not inspect `stack_metadata.json` to detect or skip Git-backed stacks. Review the stack's deployment source before selecting it.
+**Git-backed stacks are not fully migrated.** The tool inspects Portrieve's `stack_metadata.json` for `GitConfig`. Bulk selection skips Git-backed stacks; explicit selection warns and copies exported files only. Repository connections, branches, credentials and Git deployment settings are not transferred.
 
 ## Workflow
 
@@ -17,7 +17,7 @@ Do not point Portrieve's synchronized export output at a live Arcane projects di
 
 ## Docker usage
 
-Use the published image `ghcr.io/rubenfixit/portainer-to-arcane:0.1.0` (Linux AMD64 and ARM64). Pin a version for reproducible use; `latest` follows the most recently published stable release.
+Use the published image `ghcr.io/rubenfixit/portainer-to-arcane:0.2.0` (Linux AMD64 and ARM64). Pin a version for reproducible use; `latest` follows the most recently published stable release.
 
 Select one or more stacks. Change `local-agent-4` to your exported endpoint directory and the project names to your stacks:
 
@@ -25,10 +25,25 @@ Select one or more stacks. Change `local-agent-4` to your exported endpoint dire
 docker run --rm --user "$(id -u):$(id -g)" \
   -v "$HOME/portainer-export/local-agent-4:/exports:ro" \
   -v /opt/docker:/projects \
-  ghcr.io/rubenfixit/portainer-to-arcane:0.1.0 \
+  ghcr.io/rubenfixit/portainer-to-arcane:0.2.0 \
   --source /exports --destination /projects \
   --project nextcloud --project media
 ```
+
+To select all projects except a few:
+
+```bash
+docker run --rm --user "$(id -u):$(id -g)" \
+  -v "$HOME/portainer-export/local-agent-4:/exports:ro" \
+  -v /opt/docker:/projects \
+  ghcr.io/rubenfixit/portainer-to-arcane:0.2.0 \
+  --source /exports --destination /projects \
+  --all --exclude rustdesk --exclude portainer
+```
+
+Only exclude names present in your export; an unknown exclusion fails to catch typos. Omit `--exclude portainer` if it is not an exported stack. `--all` and `--project` are mutually exclusive; `--exclude` requires `--all`. Both selection modes default to dry run. Append `--apply` to write files.
+
+Bulk selection examines immediate project folders within one endpoint export. It skips Git-backed stacks and stacks without metadata, printing the reason. Malformed metadata stops preparation before files are written. A metadata object with no nonempty `GitConfig` is classified as file-based; this is export metadata detection, not live inspection or a guarantee of completeness. Explicit `--project` can select a reviewed Git-backed export and emits a warning, or select files without metadata. Credentials and repository URLs are not printed.
 
 To build locally instead:
 
@@ -96,7 +111,7 @@ Arcane must have the host projects folder mounted and its Projects Directory con
 
 ## Status and scope
 
-Early development. The original manual workflow worked for the author's standalone Docker homelab. This packaged utility has synthetic tests; it has not yet been validated against a live Arcane deployment. Git connection migration and detection, Swarm migration, multi-file exports and data migration are outside its scope. Warnings are advisory, not a complete Compose analysis.
+Early development. The original manual workflow worked for the author's standalone Docker homelab. This packaged utility has synthetic tests; it has not yet been validated against a live Arcane deployment. Git connection migration, Swarm migration, multi-file exports and data migration are outside its scope. Warnings are advisory, not a complete Compose analysis.
 
 Portrieve remains a separate dependency; its code is not bundled. This project is independent of Portainer, Arcane and Portrieve.
 

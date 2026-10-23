@@ -3,10 +3,56 @@ import io
 from pathlib import Path
 import tempfile
 import unittest
-from prepare import prepare
+from prepare import prepare, select_projects
 
 
 class PreparationTests(unittest.TestCase):
+    def test_bulk_selection_excludes_git_and_missing_metadata(self):
+        with tempfile.TemporaryDirectory() as root:
+            root = Path(root)
+            for name, metadata in [("app", '{}'), ("excluded", '{}'),
+                                   ("git", '{"GitConfig":{"URL":"https://example.com/repo"}}'),
+                                   ("unknown", None)]:
+                folder = root / name
+                folder.mkdir()
+                (folder / "docker-compose.yml").write_text("services: {}")
+                if metadata is not None:
+                    (folder / "stack_metadata.json").write_text(metadata)
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                chosen = select_projects(root, all_projects=True, exclude=["excluded"])
+            self.assertEqual(chosen, ["app"])
+            self.assertIn("Git-backed", output.getvalue())
+            self.assertIn("metadata missing", output.getvalue())
+            self.assertNotIn("https://example.com", output.getvalue())
+            with self.assertRaises(ValueError):
+                select_projects(root, all_projects=True, exclude=["typo"])
+
+    def test_invalid_bulk_metadata(self):
+        with tempfile.TemporaryDirectory() as root:
+            folder = Path(root) / "app"
+            folder.mkdir()
+            (folder / "stack_metadata.json").write_text("not json")
+            with self.assertRaises(ValueError):
+                select_projects(root, all_projects=True)
+
+    def test_exclude_requires_all(self):
+        with tempfile.TemporaryDirectory() as root:
+            with self.assertRaises(ValueError):
+                select_projects(root, ["app"], exclude=["app"])
+
+    def test_explicit_git_selection_warns(self):
+        with tempfile.TemporaryDirectory() as root:
+            folder = Path(root) / "git"
+            folder.mkdir()
+            (folder / "stack_metadata.json").write_text('{"GitConfig":{"URL":"secret"}}')
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                chosen = select_projects(root, ["git"])
+            self.assertEqual(chosen, ["git"])
+            self.assertIn("WARNING", output.getvalue())
+            self.assertNotIn("secret", output.getvalue())
+
     def test_dry_run_apply_and_no_overwrite(self):
         with tempfile.TemporaryDirectory() as root:
             root = Path(root)
