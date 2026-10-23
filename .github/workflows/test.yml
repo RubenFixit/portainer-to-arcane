@@ -11,5 +11,8 @@ jobs:
         with:
           python-version: '3.13'
       - run: python -m unittest -v
+      - run: bash -n launch.sh
+      - run: bash launch.sh --help
+      - run: bash test_launcher.sh
       - run: docker build -t portainer-to-arcane .
       - run: docker run --rm portainer-to-arcane --help

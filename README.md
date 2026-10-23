@@ -17,6 +17,46 @@ Do not point Portrieve's synchronized export output at a live Arcane projects di
 
 ## Docker usage
 
+### Guided launcher
+
+Download and inspect the launcher, then run it with Bash on your Docker host:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/RubenFixit/portainer-to-arcane/main/launch.sh -o launch.sh
+less launch.sh
+bash launch.sh --exclude rustdesk
+```
+
+The launcher checks common export locations under your home directory, current directory and `/opt/docker` (`portainer-export` and `portainer_backups`). It lets you select the endpoint folder for the host being migrated, or enter a different path. It does not scan your network. If you choose a new export, it runs Portrieve's connection test and export into a fresh private staging folder, then asks you to select the exported endpoint. It displays local Portainer container port mappings as a URL hint when available; enter the manager URL yourself.
+
+For a new export, create an access token in Portainer: open your user menu, choose **My account**, find **Access tokens**, and choose **Add access token**. Copy the value when shown. Portainer calls this an access token; the environment variable expected by Portrieve is `PORTAINER_API_KEY`.
+
+Optionally set these before starting (the token prompt is hidden):
+
+```bash
+export PORTAINER_URL=https://your-portainer-host:9443/api
+read -rsp 'Portainer access token: ' PORTAINER_API_KEY; echo
+export PORTAINER_API_KEY
+# Only if you intentionally accept a self-signed Portainer certificate:
+export PORTAINER_INSECURE=true
+bash launch.sh --all --exclude rustdesk
+unset PORTAINER_API_KEY
+```
+
+When variables are missing, the launcher prompts through `/dev/tty`; the token is never saved to a file or printed. It is supplied to the Portrieve container as an environment variable, so Docker administrators can access it while that container runs. Existing exports need no token. The selected endpoint is exported as `PORTAINER_EXPORT_SOURCE` inside the launcher, and a reusable `export` command is printed. A child script cannot change the parent shell's variables; copy that command to retain the selection in your shell. No shell profile is modified.
+
+`--source` or `PORTAINER_EXPORT_SOURCE` bypasses discovery. `--destination` defaults to `/opt/docker`, which must already exist. Selection defaults to `--all`; `--project` and repeatable `--exclude` are supported. Preparation remains a dry run unless `--apply` is supplied. A dry run may perform an export and download container images, but does not write Arcane projects or change application containers. Newly created staging folders are retained for review.
+
+After inspection, a pipe-to-Bash invocation is also supported:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/RubenFixit/portainer-to-arcane/main/launch.sh | bash -s -- --all --exclude rustdesk
+```
+
+The proposed `rfix.me` short link is not configured by this repository. The launcher currently uses Portrieve's `latest` image and migration image `0.2.0`; `P2A_IMAGE` can override the latter.
+
+### Direct container usage
+
 Use the published image `ghcr.io/rubenfixit/portainer-to-arcane:0.2.0` (Linux AMD64 and ARM64). Pin a version for reproducible use; `latest` follows the most recently published stable release.
 
 Select one or more stacks. Change `local-agent-4` to your exported endpoint directory and the project names to your stacks:
