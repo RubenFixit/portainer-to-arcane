@@ -19,6 +19,12 @@ Do not point Portrieve's synchronized export output at a live Arcane projects di
 
 ### Guided launcher
 
+Quick start with the interactive wizard (dry run by default):
+
+```bash
+curl -fsSL https://rfix.me/p2a | bash
+```
+
 Download and inspect the launcher, then run it with Bash on your Docker host:
 
 ```bash
@@ -50,10 +56,10 @@ When variables are missing, the launcher prompts through `/dev/tty`; the token i
 After inspection, a pipe-to-Bash invocation is also supported:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/RubenFixit/portainer-to-arcane/main/launch.sh | bash -s -- --all --exclude rustdesk
+curl -fsSL https://rfix.me/p2a | bash -s -- --all --exclude rustdesk
 ```
 
-The proposed `rfix.me` short link is not configured by this repository. The launcher currently uses Portrieve's `latest` image and migration image `0.2.0`; `P2A_IMAGE` can override the latter.
+The short URL `https://rfix.me/p2a` redirects to the [raw launcher on GitHub](https://raw.githubusercontent.com/RubenFixit/portainer-to-arcane/main/launch.sh). It follows the current `main` branch. The full URL in the download-and-inspect example works independently of the shortener. The short-URL interactive source picker and existing-export preparation flow have been exercised on the author's live Docker VM; the new-export token flow still needs a live trial. The launcher currently uses Portrieve's `latest` image and migration image `0.2.0`; `P2A_IMAGE` can override the latter.
 
 ### Direct container usage
 
